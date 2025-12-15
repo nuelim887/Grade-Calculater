@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>성적 계산기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center p-4 font-sans text-slate-800">
+
+    <div class="bg-white w-full max-w-lg rounded-2xl shadow-xl overflow-hidden">
+        <div class="bg-indigo-600 p-6 text-white flex items-center gap-3">
+            <i data-lucide="calculator" class="w-8 h-8"></i>
+            <h1 class="text-2xl font-bold tracking-tight">성적 계산기</h1>
+        </div>
+
+        <div class="p-8">
+            <div id="step1" class="space-y-6 animate-fade-in">
+                <label class="block text-lg font-medium text-slate-700 mb-4">
+                    계산하고자 하는 과목의<br />수행평가 개수를 입력해주세요.
+                </label>
+                
+                <div class="relative">
+                    <input
+                        type="number"
+                        id="numPerformanceInput"
+                        min="1"
+                        max="9"
+                        class="w-full text-center text-3xl font-bold text-indigo-600 bg-slate-50 border-2 border-slate-200 rounded-xl py-4 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all appearance-none"
+                        placeholder="1-9"
+                        value="1"
+                    />
+                </div>
+                
+                <div id="step1Error" class="hidden flex items-center gap-2 text-red-500 bg-red-50 p-3 rounded-lg text-sm font-medium">
+                    <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                    <span id="step1ErrorText"></span>
+                </div>
+
+                <button
+                    id="btnStart"
+                    class="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
+                >
+                    다음으로
+                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div id="step2" class="hidden space-y-6 animate-fade-in">
+                <h2 class="text-xl font-bold text-slate-800 border-l-4 border-indigo-500 pl-4 py-1">
+                    자신의 시험 점수를 입력해주세요.
+                </h2>
+
+                <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                    
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <label class="block text-sm font-bold text-slate-600 mb-2">중간고사 (30%)</label>
+                        <input
+                            type="number"
+                            id="midtermScoreInput"
+                            placeholder="0 ~ 100"
+                            class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
+                        />
+                    </div>
+
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <label class="block text-sm font-bold text-slate-600 mb-2">기말고사 (30%)</label>
+                        <input
+                            type="number"
+                            id="finalScoreInput"
+                            placeholder="0 ~ 100"
+                            class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
+                        />
+                    </div>
+
+                    <div id="performancesContainer" class="space-y-4"></div>
+                </div>
+
+                <div id="step2Error" class="hidden text-red-500 bg-red-50 p-3 rounded-lg text-sm font-medium border border-red-100 animate-pulse">
+                     ⚠ <span id="step2ErrorText"></span>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button
+                        id="btnPrev"
+                        class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3 rounded-xl transition-all"
+                    >
+                        이전
+                    </button>
+                    <button
+                        id="btnCalc"
+                        class="flex-[2] bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow-lg transition-all"
+                    >
+                        계산하기
+                    </button>
+                </div>
+            </div>
+
+            <div id="step3" class="hidden text-center space-y-8 animate-fade-in py-8">
+                <div class="relative inline-block">
+                    <div class="absolute -inset-1 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full blur opacity-30"></div>
+                    <div class="relative bg-white rounded-full w-32 h-32 flex items-center justify-center border-4 border-indigo-50 shadow-inner mx-auto">
+                        <span id="finalGradeDisplay" class="text-6xl font-black"></span>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <h3 class="text-2xl font-bold text-slate-800">
+                        회원님의 등급은 <span id="finalGradeText" class="text-indigo-600"></span> 등급입니다.
+                    </h3>
+                    <p class="text-slate-500">
+                        총점: <span id="totalScoreDisplay" class="font-semibold text-slate-700"></span>점
+                    </p>
+                </div>
+
+                <button
+                    id="btnReset"
+                    class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
+                >
+                    <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
+                    다시 계산하기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let step = 1;
+        let numPerformance = 1;
+        let midtermScore = '';
+        let finalScore = '';
+        let performances = [];
+        let error = '';
+
+        const step1Div = document.getElementById('step1');
+        const step2Div = document.getElementById('step2');
+        const step3Div = document.getElementById('step3');
+        
+        const numPerfInput = document.getElementById('numPerformanceInput');
+        const step1ErrorDiv = document.getElementById('step1Error');
+        const step1ErrorText = document.getElementById('step1ErrorText');
+        
+        const midtermInput = document.getElementById('midtermScoreInput');
+        const finalInput = document.getElementById('finalScoreInput');
+        const performancesContainer = document.getElementById('performancesContainer');
+        const step2ErrorDiv = document.getElementById('step2Error');
+        const step2ErrorText = document.getElementById('step2ErrorText');
+
+        const finalGradeDisplay = document.getElementById('finalGradeDisplay');
+        const finalGradeText = document.getElementById('finalGradeText');
+        const totalScoreDisplay = document.getElementById('totalScoreDisplay');
+
+        lucide.createIcons();
+
+        numPerfInput.addEventListener('input', (e) => {
+            numPerformance = e.target.value;
+            clearError();
+        });
+
+        document.getElementById('btnStart').addEventListener('click', handleStart);
+        
+        midtermInput.addEventListener('input', (e) => {
+            midtermScore = e.target.value;
+        });
+        
+        finalInput.addEventListener('input', (e) => {
+            finalScore = e.target.value;
+        });
+
+        document.getElementById('btnPrev').addEventListener('click', () => {
+            setStep(1);
+        });
+        
+        document.getElementById('btnCalc').addEventListener('click', calculateGrade);
+        
+        document.getElementById('btnReset').addEventListener('click', resetApp);
+
+        function setStep(newStep) {
+            step = newStep;
+            
+            step1Div.classList.add('hidden');
+            step2Div.classList.add('hidden');
+            step3Div.classList.add('hidden');
+
+            if (step === 1) {
+                step1Div.classList.remove('hidden');
+                midtermScore = '';
+                finalScore = '';
+                midtermInput.value = '';
+                finalInput.value = '';
+                clearError();
+            } else if (step === 2) {
+                step2Div.classList.remove('hidden');
+                renderPerformances();
+                lucide.createIcons();
+            } else if (step === 3) {
+                step3Div.classList.remove('hidden');
+                lucide.createIcons();
+            }
+        }
+
+        function setError(msg, stepNum) {
+            error = msg;
+            if (stepNum === 1) {
+                step1ErrorText.textContent = msg;
+                step1ErrorDiv.classList.remove('hidden');
+            } else if (stepNum === 2) {
+                step2ErrorText.textContent = msg;
+                step2ErrorDiv.classList.remove('hidden');
+            }
+        }
+
+        function clearError() {
+            error = '';
+            step1ErrorDiv.classList.add('hidden');
+            step2ErrorDiv.classList.add('hidden');
+        }
+
+        function handleStart() {
+            const n = parseInt(numPerformance);
+            if (isNaN(n) || n < 1 || n > 9) {
+                setError('1에서 9 사이의 숫자를 입력해주세요.', 1);
+                return;
+            }
+            
+            performances = Array.from({ length: n }, () => ({ score: '', weight: '' }));
+            clearError();
+            setStep(2);
+        }
+
+        function renderPerformances() {
+            performancesContainer.innerHTML = '';
+            
+            performances.forEach((perf, index) => {
+                const html = `
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 relative">
+                        <div class="absolute top-0 right-0 bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-1 rounded-bl-lg rounded-tr-lg">
+                            수행 ${index + 1}
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 mt-2">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 mb-1">점수 (0~100)</label>
+                                <input
+                                    type="number"
+                                    placeholder="점수"
+                                    value="${perf.score}"
+                                    data-index="${index}"
+                                    data-field="score"
+                                    class="perf-input w-full px-3 py-2 rounded-lg border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
+                                />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 mb-1">비율 (%)</label>
+                                <div class="relative">
+                                    <input
+                                        type="number"
+                                        placeholder="%"
+                                        value="${perf.weight}"
+                                        data-index="${index}"
+                                        data-field="weight"
+                                        class="perf-input w-full px-3 py-2 rounded-lg border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all pr-8"
+                                    />
+                                    <span class="absolute right-3 top-2 text-slate-400 font-bold">%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                performancesContainer.insertAdjacentHTML('beforeend', html);
+            });
+
+            document.querySelectorAll('.perf-input').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    const idx = parseInt(e.target.dataset.index);
+                    const field = e.target.dataset.field;
+                    performances[idx][field] = e.target.value;
+                    clearError();
+                });
+            });
+        }
+
+        function calculateGrade() {
+            const mid = parseFloat(midtermScore);
+            const fin = parseFloat(finalScore);
+
+            if (isNaN(mid) || mid < 0 || mid > 100 || isNaN(fin) || fin < 0 || fin > 100) {
+                setError('모든 시험 점수는 0점에서 100점 사이여야 합니다.', 2);
+                return;
+            }
+
+            let weightSum = 0;
+            let perfCalcSum = 0;
+
+            for (let i = 0; i < performances.length; i++) {
+                const pScore = parseFloat(performances[i].score);
+                const pWeight = parseFloat(performances[i].weight);
+
+                if (isNaN(pScore) || pScore < 0 || pScore > 100) {
+                    setError(`${i + 1}번 수행평가 점수가 올바르지 않습니다. (0~100)`, 2);
+                    return;
+                }
+                if (isNaN(pWeight) || pWeight < 0) {
+                    setError(`${i + 1}번 수행평가 비율이 올바르지 않습니다.`, 2);
+                    return;
+                }
+
+                weightSum += pWeight;
+                perfCalcSum += (pScore * (pWeight / 100));
+            }
+
+            if (Math.abs(weightSum - 40) > 0.01) {
+                setError(`수행평가 반영 비율의 총합은 40%가 되어야 합니다. (현재: ${Number(weightSum.toFixed(1))}%)`, 2);
+                return;
+            }
+
+            const total = (mid * 0.3) + (fin * 0.3) + perfCalcSum;
+            
+            let grade = 'E';
+            if (total >= 90) grade = 'A';
+            else if (total >= 80) grade = 'B';
+            else if (total >= 70) grade = 'C';
+            else if (total >= 60) grade = 'D';
+
+            finalGradeDisplay.textContent = grade;
+            finalGradeText.textContent = grade;
+            totalScoreDisplay.textContent = total.toFixed(2);
+            
+            let colorClass = 'text-red-500';
+            if(grade === 'A') colorClass = 'text-indigo-600';
+            else if(grade === 'B') colorClass = 'text-blue-500';
+            else if(grade === 'C') colorClass = 'text-green-500';
+            else if(grade === 'D') colorClass = 'text-yellow-500';
+
+            finalGradeDisplay.className = `text-6xl font-black ${colorClass}`;
+            finalGradeText.className = colorClass;
+
+            setStep(3);
+        }
+
+        function resetApp() {
+            setStep(1);
+            numPerformance = 1;
+            numPerfInput.value = 1;
+            midtermScore = '';
+            finalScore = '';
+            performances = [];
+            clearError();
+        }
+    </script>
+</body>
+</html>
